@@ -77,6 +77,33 @@ async search(q: string, page: number) {
 }
 ```
 
+Placeholders also support dot notation, so you can pull values out of object
+parameters (DTOs, query objects, request-scoped principals) without having to
+destructure them in the method signature:
+
+```ts
+@Get()
+@CacheThis(
+  'products.v1.{organizationId}.{query.categoryId}.{query.isActive}.{user.requestingUserSubject}',
+)
+async list(
+  @Param('organizationId', new ParseUUIDPipe()) organizationId: string,
+  @CurrentUser() user: CurrentUserDto,
+  @Query() query: ListProductsQueryDto,
+) {
+  return this.productsService.list({
+    organizationId,
+    requestingUserId: user.requestingUserSubject,
+    categoryId: query.categoryId,
+    isActive: query.isActive,
+  });
+}
+```
+
+The leading segment matches a parameter name; remaining segments are read as
+properties on the resolved argument. Multiple levels are supported
+(`{user.profile.id}`).
+
 Placeholder values must be a string, number, boolean, or bigint. The library
 fails fast in two cases:
 

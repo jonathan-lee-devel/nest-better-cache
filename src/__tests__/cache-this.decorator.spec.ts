@@ -94,6 +94,35 @@ describe('@CacheThis', () => {
     expect(result).toBe('x!');
   });
 
+  it('resolves dot-notation placeholders against object parameters', async () => {
+    cache.get.mockResolvedValue(null);
+
+    interface Query {
+      categoryId: string;
+      isActive: boolean;
+    }
+    interface User {
+      requestingUserSubject: string;
+    }
+
+    class ProductsController {
+      @CacheThis(
+        'products.{organizationId}.{query.categoryId}.{query.isActive}.{user.requestingUserSubject}',
+      )
+      async list(organizationId: string, user: User, query: Query) {
+        return [organizationId, user, query];
+      }
+    }
+
+    await new ProductsController().list(
+      'org-1',
+      { requestingUserSubject: 'sub-9' },
+      { categoryId: 'cat-3', isActive: true },
+    );
+
+    expect(cache.get).toHaveBeenCalledWith('products.org-1.cat-3.true.sub-9');
+  });
+
   it('fails fast at decoration time when a placeholder does not match any parameter', () => {
     expect(() => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars

@@ -1,7 +1,7 @@
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyFunction = (...args: any[]) => any;
 
-const PLACEHOLDER_PATTERN = /\{(\w+)\}/g;
+const PLACEHOLDER_PATTERN = /\{([\w$]+(?:\.[\w$]+)*)\}/g;
 const SIMPLE_IDENTIFIER = /^[\w$]+$/;
 
 /**
@@ -35,26 +35,32 @@ export const extractParamNames = (fn: AnyFunction): string[] => {
     .filter((name) => SIMPLE_IDENTIFIER.test(name));
 };
 
-type Segment = { kind: 'literal'; value: string } | { kind: 'param'; index: number; name: string };
+type Segment =
+  | { kind: 'literal'; value: string }
+  | { kind: 'param'; index: number; path: string[]; expression: string };
 
 export type KeyResolver = (args: unknown[]) => string;
 
 /**
- * Compiles a key template into a resolver function. `{name}` placeholders are
- * matched against the supplied parameter names — at decoration time we fail
- * fast if a placeholder doesn't correspond to any method parameter, since that
- * is always a bug.
+ * Compiles a key template into a resolver function. Placeholders take the
+ * form `{name}` or `{name.path.to.value}`. The leading segment is matched
+ * against the supplied parameter names; any remaining segments traverse
+ * properties on the resolved argument via dot notation, e.g. `{query.page}`
+ * pulls `args[queryIndex].page`. At decoration time we fail fast if the head
+ * placeholder doesn't correspond to any method parameter, since that is
+ * always a bug.
  */
 export const compileKeyTemplate = (template: string, paramNames: string[]): KeyResolver => {
   const segments: Segment[] = [];
   let lastIndex = 0;
 
   for (const match of template.matchAll(PLACEHOLDER_PATTERN)) {
-    const name = match[1];
-    const index = paramNames.indexOf(name);
+    const expression = match[1];
+    const [head, ...path] = expression.split('.');
+    const index = paramNames.indexOf(head);
     if (index === -1) {
       throw new Error(
-        `[@jdevel/nest-better-cache] cache key placeholder "{${name}}" ` +
+        `[@jdevel/nest-better-cache] cache key placeholder "{${expression}}" ` +
           `does not match any method parameter ` +
           `(parameters: ${paramNames.length > 0 ? paramNames.join(', ') : '<none>'}).`,
       );
@@ -66,7 +72,7 @@ export const compileKeyTemplate = (template: string, paramNames: string[]): KeyR
         value: template.slice(lastIndex, matchIndex),
       });
     }
-    segments.push({ kind: 'param', index, name });
+    segments.push({ kind: 'param', index, path, expression });
     lastIndex = matchIndex + match[0].length;
   }
   if (lastIndex < template.length) {
@@ -79,10 +85,25 @@ export const compileKeyTemplate = (template: string, paramNames: string[]): KeyR
         if (seg.kind === 'literal') {
           return seg.value;
         }
-        const value = args[seg.index];
+        let value: unknown = args[seg.index];
+        for (const key of seg.path) {
+          if (value === undefined || value === null) {
+            throw new Error(
+              `[@jdevel/nest-better-cache] cache key placeholder "{${seg.expression}}" ` +
+                `received ${value === undefined ? 'undefined' : 'null'} at runtime.`,
+            );
+          }
+          if (typeof value !== 'object') {
+            throw new Error(
+              `[@jdevel/nest-better-cache] cache key placeholder "{${seg.expression}}" ` +
+                `cannot read "${key}" on ${typeof value}.`,
+            );
+          }
+          value = (value as Record<string, unknown>)[key];
+        }
         if (value === undefined || value === null) {
           throw new Error(
-            `[@jdevel/nest-better-cache] cache key placeholder "{${seg.name}}" ` +
+            `[@jdevel/nest-better-cache] cache key placeholder "{${seg.expression}}" ` +
               `received ${value === undefined ? 'undefined' : 'null'} at runtime.`,
           );
         }
@@ -93,7 +114,7 @@ export const compileKeyTemplate = (template: string, paramNames: string[]): KeyR
           typeof value !== 'bigint'
         ) {
           throw new Error(
-            `[@jdevel/nest-better-cache] cache key placeholder "{${seg.name}}" ` +
+            `[@jdevel/nest-better-cache] cache key placeholder "{${seg.expression}}" ` +
               `must be a string, number, boolean, or bigint, got ${typeof value}.`,
           );
         }

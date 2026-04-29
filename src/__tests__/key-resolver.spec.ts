@@ -73,4 +73,35 @@ describe('compileKeyTemplate', () => {
       /must be a string, number, boolean, or bigint/,
     );
   });
+
+  it('reads nested object properties via dot notation', () => {
+    const resolve = compileKeyTemplate(
+      'products.{organizationId}.{query.categoryId}.{user.requestingUserSubject}',
+      ['organizationId', 'user', 'query'],
+    );
+    const args = ['org-1', { requestingUserSubject: 'sub-9' }, { categoryId: 'cat-3' }];
+    expect(resolve(args)).toBe('products.org-1.cat-3.sub-9');
+  });
+
+  it('walks multiple levels of dot notation', () => {
+    const resolve = compileKeyTemplate('user.{user.profile.id}', ['user']);
+    expect(resolve([{ profile: { id: 'abc' } }])).toBe('user.abc');
+  });
+
+  it('throws at runtime when the dot path traverses null/undefined', () => {
+    const resolve = compileKeyTemplate('q.{query.page}', ['query']);
+    expect(() => resolve([undefined])).toThrow(/placeholder "\{query.page\}" received undefined/);
+    expect(() => resolve([{ page: null }])).toThrow(/received null/);
+  });
+
+  it('throws when the dot path tries to read a property off a primitive', () => {
+    const resolve = compileKeyTemplate('q.{query.page}', ['query']);
+    expect(() => resolve(['oops'])).toThrow(/cannot read "page" on string/);
+  });
+
+  it('throws at compile time when the head of a dot path names no parameter', () => {
+    expect(() => compileKeyTemplate('q.{nope.page}', ['query'])).toThrow(
+      /does not match any method parameter/,
+    );
+  });
 });
