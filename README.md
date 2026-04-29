@@ -144,7 +144,6 @@ class TagService {
 ### Before
 
 ```ts
-import { CacheThis } from '@jdevel/nest-better-cache';
 import { Inject } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 
@@ -181,9 +180,9 @@ export class OrganizationsController {
 ### After
 
 ```ts
+import { CacheEvict, CacheThis } from '@jdevel/nest-better-cache';
 import { Inject } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { CacheEvict, CacheThis } from '@jdevel/nest-better-cache';
 
 export class OrganizationsController {
   constructor(private readonly organizationService: OrganizationService) {}
