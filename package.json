@@ -1,0 +1,64 @@
+{
+  "name": "@jdevel/nest-better-cache",
+  "version": "0.0.1",
+  "description": "A better caching library for NestJS",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "./node_modules/.bin/tsc",
+    "lint": "./node_modules/.bin/eslint src/",
+    "lint:fix": "./node_modules/.bin/eslint src/ --fix",
+    "test": "./node_modules/.bin/jest",
+    "test:watch": "./node_modules/.bin/jest --watch",
+    "test:cov": "./node_modules/.bin/jest --coverage",
+    "format": "./node_modules/.bin/prettier --write .",
+    "format:check": "./node_modules/.bin/prettier --check .",
+    "prepublishOnly": "npm run build",
+    "prepare": "./node_modules/.bin/husky"
+  },
+  "peerDependencies": {
+    "@keyv/redis": "^5.1.6",
+    "@nestjs/cache-manager": "^3.1.2",
+    "@nestjs/common": "^10.0.0 || ^11.0.0",
+    "@nestjs/config": "^4.0.4",
+    "@nestjs/core": "^11.1.19",
+    "cache-manager": "^7.2.8",
+    "reflect-metadata": "^0.1.13 || ^0.2.0",
+    "rxjs": "^7.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@keyv/redis": "^5.1.6",
+    "@nestjs/cache-manager": "^3.1.2",
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/config": "^4.0.4",
+    "@nestjs/core": "^11.1.19",
+    "@nestjs/testing": "^11.1.17",
+    "@types/jest": "^30.0.0",
+    "cache-manager": "^7.2.8",
+    "eslint": "^10.1.0",
+    "eslint-config-prettier": "^10.1.8",
+    "husky": "^9.1.7",
+    "jest": "^30.3.0",
+    "keyv": "^5.6.0",
+    "prettier": "^3.8.1",
+    "reflect-metadata": "^0.2.0",
+    "rxjs": "^7.8.1",
+    "ts-jest": "^29.4.6",
+    "typescript": "^5.7.0",
+    "typescript-eslint": "^8.57.2"
+  },
+  "keywords": [
+    "nestjs",
+    "cache",
+    "caching",
+    "typescript"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT"
+}
