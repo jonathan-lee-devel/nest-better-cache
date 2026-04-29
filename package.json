@@ -8,7 +8,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "./node_modules/.bin/tsc",
+    "build": "./node_modules/.bin/tsc -p tsconfig.build.json",
     "lint": "./node_modules/.bin/eslint src/",
     "lint:fix": "./node_modules/.bin/eslint src/ --fix",
     "test": "./node_modules/.bin/jest",

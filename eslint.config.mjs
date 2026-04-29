@@ -39,4 +39,11 @@ export default tseslint.config(
       '@typescript-eslint/explicit-module-boundary-types': 'error',
     },
   },
+  {
+    files: ['src/**/__tests__/**/*.ts', 'src/**/*.spec.ts'],
+    rules: {
+      '@typescript-eslint/require-await': 'off',
+      '@typescript-eslint/unbound-method': 'off',
+    },
+  },
 );

@@ -6,8 +6,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import type { RedisClientType } from '@keyv/redis';
 import type { FactoryProvider } from '@nestjs/common';
 
-import { CacheEvictInterceptor } from './interceptors/cache-evict.interceptor';
-import { CacheThisInterceptor } from './interceptors/cache-this.interceptor';
+import { CacheBootstrapService } from './cache-bootstrap.service';
 
 /**
  * Injection token for the connected Redis client that backs the cache store.
@@ -53,12 +52,7 @@ export class NestBetterCacheRedisClientModule {}
       }),
     }),
   ],
-  providers: [CacheThisInterceptor, CacheEvictInterceptor],
-  exports: [
-    NestBetterCacheRedisClientModule,
-    CacheModule,
-    CacheThisInterceptor,
-    CacheEvictInterceptor,
-  ],
+  providers: [CacheBootstrapService],
+  exports: [NestBetterCacheRedisClientModule, CacheModule],
 })
 export class NestBetterCacheModule {}
