@@ -139,6 +139,69 @@ class TagService {
 }
 ```
 
+## Real-world Examples of Cleaner Cache Patterns
+
+### Before
+
+```ts
+import { CacheThis } from '@jdevel/nest-better-cache';
+import { Inject } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+
+export class OrganizationsController {
+  constructor(
+    @Inject(CACHE_MANAGER) readonly cache: Cache,
+    private readonly organizationService: OrganizationService,
+  ) {}
+
+  async getOrganizationById(organizationId: string) {
+    const key = `v1.getOrganizationById.${organizationId}`;
+    const cached = await this.cache.get(key);
+    if (cached) return cached;
+
+    const organization = await this.organizationService.getOrganizationById(organizationId);
+    await this.cache.set(key, organization, ORGANIZATION_CACHE_TTL_MS);
+    return organization;
+  }
+
+  async updateOrganizationById(organizationId: string, updateDto: UpdateOrganizationDto) {
+    const key = `v1.getOrganizationById.${organizationId}`;
+
+    const organization = await this.organizationService.updateOrganizationById(
+      organizationId,
+      updateDto,
+    );
+    await this.cache.delete(key);
+
+    return organization;
+  }
+}
+```
+
+### After
+
+```ts
+import { Inject } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { CacheEvict, CacheThis } from '@jdevel/nest-better-cache';
+
+export class OrganizationsController {
+  constructor(private readonly organizationService: OrganizationService) {}
+
+  // Will only update the cache on a non-null return result of the decorated get method
+  @CacheThis('v1.getOrganizationById.{organizationId}', { ttl: ORGANIZATION_CACHE_TTL_MS })
+  async getOrganizationById(organizationId: string) {
+    return this.organizationService.getOrganizationById(organizationId);
+  }
+
+  // Will only evict the cache upon successful execution of the decorated update method
+  @CacheEvict('v1.getOrganizationById.{organizationId}')
+  async updateOrganizationById(organizationId: string, updateDto: UpdateOrganizationDto) {
+    return this.organizationService.updateOrganizationById(organizationId, updateDto);
+  }
+}
+```
+
 ## Scripts
 
 ```bash
