@@ -33,10 +33,7 @@ export const CacheThis =
     const paramNames = extractParamNames(original);
     const resolveKey = compileKeyTemplate(keyTemplate, paramNames);
 
-    descriptor.value = async function (
-      this: unknown,
-      ...args: unknown[]
-    ): Promise<unknown> {
+    descriptor.value = async function (this: unknown, ...args: unknown[]): Promise<unknown> {
       const key = resolveKey(args);
       const cache = getCacheManager();
       const cached = await cache.get(key);

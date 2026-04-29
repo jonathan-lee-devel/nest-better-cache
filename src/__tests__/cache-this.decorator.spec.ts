@@ -1,7 +1,4 @@
-import {
-  __resetCacheManagerForTests,
-  setCacheManager,
-} from '../cache-registry';
+import { __resetCacheManagerForTests, setCacheManager } from '../cache-registry';
 import { CacheThis } from '../decorators/cache-this.decorator';
 
 import type { Cache } from 'cache-manager';

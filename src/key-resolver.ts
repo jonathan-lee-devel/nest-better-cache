@@ -35,9 +35,7 @@ export const extractParamNames = (fn: AnyFunction): string[] => {
     .filter((name) => SIMPLE_IDENTIFIER.test(name));
 };
 
-type Segment =
-  | { kind: 'literal'; value: string }
-  | { kind: 'param'; index: number; name: string };
+type Segment = { kind: 'literal'; value: string } | { kind: 'param'; index: number; name: string };
 
 export type KeyResolver = (args: unknown[]) => string;
 
@@ -47,10 +45,7 @@ export type KeyResolver = (args: unknown[]) => string;
  * fast if a placeholder doesn't correspond to any method parameter, since that
  * is always a bug.
  */
-export const compileKeyTemplate = (
-  template: string,
-  paramNames: string[],
-): KeyResolver => {
+export const compileKeyTemplate = (template: string, paramNames: string[]): KeyResolver => {
   const segments: Segment[] = [];
   let lastIndex = 0;
 

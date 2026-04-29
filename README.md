@@ -86,6 +86,31 @@ fails fast in two cases:
 Silent fallthrough would let a misconfigured key quietly skip caching or
 collide on a partially substituted key.
 
+### Wildcard eviction
+
+`@CacheEvict` keys may contain `*`, in which case the key is treated as a
+Redis `SCAN`/`MATCH` pattern and every matching entry is unlinked. This is
+the typical way to invalidate a whole family of cached results — e.g. every
+`getById` row after a bulk update:
+
+```ts
+@CacheEvict('products.v1.getById.*')
+async reindexAll() { ... }
+```
+
+Wildcards compose with placeholders, so you can scope the pattern to one
+tenant / org / user:
+
+```ts
+@CacheEvict('products.v1.org.{orgId}.*')
+async invalidateOrg(orgId: string) { ... }
+```
+
+A single decorator call may mix exact keys and wildcard patterns; exact keys
+go through `cache-manager`'s `del`, patterns go through Redis `SCAN` +
+`UNLINK`. Pattern syntax is Redis's (`*`, `?`, `[abc]`) — most callers just
+need a trailing `*` for prefix eviction.
+
 ### Notes on the design
 
 The decorators wrap the method directly (rather than registering a NestJS

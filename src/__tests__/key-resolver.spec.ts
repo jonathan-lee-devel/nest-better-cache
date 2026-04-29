@@ -63,9 +63,7 @@ describe('compileKeyTemplate', () => {
 
   it('throws at runtime when a placeholder argument is null/undefined', () => {
     const resolve = compileKeyTemplate('product.{id}', ['id']);
-    expect(() => resolve([undefined])).toThrow(
-      /placeholder "\{id\}" received undefined/,
-    );
+    expect(() => resolve([undefined])).toThrow(/placeholder "\{id\}" received undefined/);
     expect(() => resolve([null])).toThrow(/received null/);
   });
 
